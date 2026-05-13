@@ -1,14 +1,23 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAppStore } from '../../store/useAppStore';
+import { useAppStore, getLevelFromXP, getXPForNextLevel, getXPForCurrentLevel } from '../../store/useAppStore';
 import { getDayNumber, getDaysRemaining, today, isTodayWeekday, getWeekStart, getStreakLength } from '../../lib/dateUtils';
 import { getQuoteForDay } from '../../lib/quotes';
+import { getDailyGeneralTip } from '../../lib/tips';
 import { MILESTONE_DAYS, TOTAL_DAYS } from '../../types';
-// dailyLogs used indirectly via store
 import CountdownHeader from './CountdownHeader';
 import GoalCard from './GoalCard';
 import DailyReflection from './DailyReflection';
 import InstallBanner from './InstallBanner';
+
+const NAV_ITEMS = [
+  { to: '/',           label: 'LOG',      icon: '📋' },
+  { to: '/calendar',   label: 'CAL',      icon: '📅' },
+  { to: '/focus',      label: 'FOCUS',    icon: '⏱' },
+  { to: '/ghost',      label: 'STATS',    icon: '📊' },
+  { to: '/milestones', label: 'MILES',    icon: '🏆' },
+  { to: '/settings',   label: 'MORE',     icon: '⚙️' },
+];
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -18,8 +27,18 @@ export default function DashboardPage() {
   const daysRemaining = settings ? getDaysRemaining(settings.startDate) : TOTAL_DAYS;
   const quote = getQuoteForDay(dayNumber);
   const todayStr = today();
+  const tip = getDailyGeneralTip(dayNumber);
 
-  // Check if weekly review is needed
+  // XP / Level
+  const xp = settings?.xp ?? 0;
+  const level = settings ? getLevelFromXP(xp) : 1;
+  const xpForCurrent = getXPForCurrentLevel(level);
+  const xpForNext = getXPForNextLevel(level);
+  const xpInLevel = xp - xpForCurrent;
+  const xpNeeded = xpForNext - xpForCurrent;
+  const xpPct = Math.min(Math.round((xpInLevel / xpNeeded) * 100), 100);
+
+  // Check weekly review
   useEffect(() => {
     if (!settings) return;
     const isReviewDay = isTodayWeekday(settings.weeklyReviewDay);
@@ -30,7 +49,7 @@ export default function DashboardPage() {
     if (!hasReview) navigate('/weekly-review');
   }, [settings, navigate, todayStr]);
 
-  // Check milestone unlocks
+  // Milestone unlocks
   useEffect(() => {
     if (!settings) return;
     for (const ms of MILESTONE_DAYS) {
@@ -59,17 +78,28 @@ export default function DashboardPage() {
     }
   }, [dayNumber, milestones, entries, goals, settings, unlockMilestone]);
 
-  // Global streak
   const allRealEntryDates = new Set(entries.filter(e => !e.isAutoFilled).map(e => e.date));
   const globalStreak = settings ? getStreakLength(allRealEntryDates, settings.startDate) : 0;
-
   const progress = ((dayNumber - 1) / TOTAL_DAYS) * 100;
 
   return (
-    <div className="min-h-screen bg-black page-enter pb-24">
+    <div className="min-h-screen bg-black page-enter" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 72px)' }}>
       <CountdownHeader dayNumber={dayNumber} daysRemaining={daysRemaining} progress={progress} />
 
-      <div className="max-w-2xl mx-auto px-4 pt-4 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+
+        {/* XP / Level bar */}
+        <div className="card px-4 py-3 space-y-1.5">
+          <div className="flex items-center justify-between font-mono text-xs">
+            <span className="text-accent font-bold">LVL {level}</span>
+            <span className="text-muted">{xpInLevel} / {xpNeeded} XP</span>
+            <span className="text-muted">LVL {Math.min(level + 1, 50)}</span>
+          </div>
+          <div className="h-1.5 bg-border rounded-full overflow-hidden">
+            <div className="xp-bar-fill h-full rounded-full" style={{ width: `${xpPct}%` }} />
+          </div>
+        </div>
+
         {/* Quote */}
         <div className="font-mono text-xs text-muted italic border-l-2 border-accent-dim pl-3 py-1">
           "{quote}"
@@ -79,7 +109,15 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <span className="font-mono text-xs text-muted">GLOBAL STREAK</span>
           <span className="font-display text-accent font-bold text-lg">{globalStreak}</span>
-          <span className="font-mono text-xs text-muted">CONSECUTIVE DAYS</span>
+          <span className="font-mono text-xs text-muted">DAYS</span>
+          <Link to="/report" className="ml-auto font-mono text-xs text-muted hover:text-accent transition-colors">
+            REPORT CARD →
+          </Link>
+        </div>
+
+        {/* Daily tip */}
+        <div className="font-mono text-xs text-muted border border-border px-3 py-2 leading-relaxed">
+          💡 {tip}
         </div>
 
         {/* Daily Reflection */}
@@ -96,18 +134,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-border">
-        <div className="max-w-2xl mx-auto flex justify-around py-2">
-          {[
-            { to: '/', label: 'LOG' },
-            { to: '/archive', label: 'ARCHIVE' },
-            { to: '/ghost', label: 'GHOST' },
-            { to: '/milestones', label: 'MILESTONES' },
-            { to: '/settings', label: 'SETTINGS' },
-          ].map(({ to, label }) => (
-            <Link key={to} to={to} className="font-mono text-xs text-muted hover:text-accent transition-colors px-2 py-1">
-              {label}
+      {/* Bottom nav — Android/iOS optimized */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-border bottom-nav">
+        <div className="max-w-2xl mx-auto grid grid-cols-6">
+          {NAV_ITEMS.map(({ to, label, icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className="flex flex-col items-center justify-center py-2 gap-0.5 font-mono text-muted hover:text-accent transition-colors"
+              style={{ minHeight: 52 }}
+            >
+              <span className="text-base leading-none">{icon}</span>
+              <span className="text-xs tracking-wider" style={{ fontSize: '9px' }}>{label}</span>
             </Link>
           ))}
         </div>

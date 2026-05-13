@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { today, getWeekStart, uid } from '../../lib/dateUtils';
+import { generateWeeklyChallenge } from '../../lib/reportCard';
 import type { Mood } from '../../types';
 
 export default function WeeklyReviewPage() {
   const navigate = useNavigate();
-  const { reviews, entries, dailyLogs, goals, saveWeeklyReview } = useAppStore();
+  const { reviews, entries, dailyLogs, goals, settings, saveWeeklyReview } = useAppStore();
 
   const todayStr = today();
   const weekStart = getWeekStart(todayStr);
@@ -31,6 +32,8 @@ export default function WeeklyReviewPage() {
 
   const isSealed = existingReview?.sealed ?? false;
 
+  const challenge = settings ? generateWeeklyChallenge(goals, entries, settings.startDate) : null;
+
   async function handleSeal() {
     if (!reflection.trim() || sealing) return;
     setSealing(true);
@@ -42,6 +45,7 @@ export default function WeeklyReviewPage() {
       moodAverage: moodAvg,
       sealed: true,
       createdAt: existingReview?.createdAt ?? new Date().toISOString(),
+      challenge: challenge ?? undefined,
     });
     navigate('/');
   }
@@ -101,6 +105,15 @@ export default function WeeklyReviewPage() {
             );
           })}
         </div>
+
+        {/* Weekly Challenge */}
+        {challenge && (
+          <div className="card p-4 space-y-2" style={{ borderLeft: '2px solid var(--accent)' }}>
+            <div className="font-mono text-xs text-accent tracking-widest">THIS WEEK'S CHALLENGE</div>
+            <p className="font-mono text-sm text-text leading-relaxed">{challenge}</p>
+            <div className="font-mono text-xs text-muted">Auto-generated based on your weakest area</div>
+          </div>
+        )}
 
         {/* Reflection */}
         <div className="card p-4 space-y-3">

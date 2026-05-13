@@ -3,7 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ─── Theme Variables ──────────────────────────────────────────────────────── */
+:root,
+[data-theme="dark-terminal"] {
   --bg: #000000;
   --surface: #0a0a0a;
   --border: #1a1a1a;
@@ -19,9 +21,50 @@
   --font-display: 'Orbitron', sans-serif;
 }
 
-* {
-  box-sizing: border-box;
+[data-theme="amber-retro"] {
+  --bg: #0d0800;
+  --surface: #120b00;
+  --border: #2a1800;
+  --accent: #ffb300;
+  --accent-dim: #7a5500;
+  --text: #ffe0a0;
+  --text-muted: #6b4e00;
+  --critical: #ff4444;
+  --high: #ff8c00;
+  --medium: #ffe066;
+  --low: #66ccff;
 }
+
+[data-theme="blue-ice"] {
+  --bg: #00080f;
+  --surface: #000d1a;
+  --border: #001f3a;
+  --accent: #00d4ff;
+  --accent-dim: #005577;
+  --text: #b0e0ff;
+  --text-muted: #2a5577;
+  --critical: #ff4466;
+  --high: #ff9900;
+  --medium: #ffe066;
+  --low: #88ffcc;
+}
+
+[data-theme="red-alert"] {
+  --bg: #0d0000;
+  --surface: #120000;
+  --border: #2a0000;
+  --accent: #ff2222;
+  --accent-dim: #7a0000;
+  --text: #ffe0e0;
+  --text-muted: #6b0000;
+  --critical: #ff0000;
+  --high: #ff8c00;
+  --medium: #ffd700;
+  --low: #00bfff;
+}
+
+/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
@@ -34,107 +77,135 @@ body {
   color: var(--text);
   font-family: var(--font-mono);
   overflow-x: hidden;
+  /* Android safe area */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Scanline overlay */
 body::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: repeating-linear-gradient(
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 255, 65, 0.015) 2px,
-    rgba(0, 255, 65, 0.015) 4px
+    rgba(0, 255, 65, 0.012) 2px,
+    rgba(0, 255, 65, 0.012) 4px
   );
   pointer-events: none;
   z-index: 9999;
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--accent-dim);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* Utility classes */
+/* ─── Typography ────────────────────────────────────────────────────────────── */
 .font-display { font-family: var(--font-display); }
-.font-mono { font-family: var(--font-mono); }
-.text-accent { color: var(--accent); }
-.text-muted { color: var(--text-muted); }
+.font-mono    { font-family: var(--font-mono); }
+.text-accent  { color: var(--accent); }
+.text-muted   { color: var(--text-muted); }
+.text-text    { color: var(--text); }
+.text-critical { color: var(--critical); }
 .border-surface { border-color: var(--border); }
 
-/* Glow effects */
-.glow-accent {
-  box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
-}
-.text-glow {
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
-}
+/* ─── Glow ─────────────────────────────────────────────────────────────────── */
+.glow-accent  { box-shadow: 0 0 8px rgba(0, 255, 65, 0.4); }
+.text-glow    { text-shadow: 0 0 8px rgba(0, 255, 65, 0.6); }
 
-/* Button base */
+/* ─── Buttons (44px min height for mobile tap targets) ─────────────────────── */
 .btn-primary {
-  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-accent text-accent
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-3 border border-accent text-accent
     bg-transparent hover:bg-accent hover:text-black transition-all duration-150 cursor-pointer;
+  min-height: 44px;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-primary:hover {
+  background-color: var(--accent);
+  color: var(--bg);
 }
 .btn-ghost {
-  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-border text-muted
-    bg-transparent hover:border-accent hover:text-accent transition-all duration-150 cursor-pointer;
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-3 border border-border text-muted
+    bg-transparent transition-all duration-150 cursor-pointer;
+  min-height: 44px;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .btn-danger {
-  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-critical text-critical
-    bg-transparent hover:bg-critical hover:text-black transition-all duration-150 cursor-pointer;
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-3 border text-critical
+    bg-transparent transition-all duration-150 cursor-pointer;
+  min-height: 44px;
+  border-color: var(--critical);
+  color: var(--critical);
+}
+.btn-danger:hover {
+  background-color: var(--critical);
+  color: var(--bg);
 }
 
-/* Card base */
+/* ─── Card ─────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
 }
 
-/* Input base */
+/* ─── Input ────────────────────────────────────────────────────────────────── */
 .input {
-  @apply bg-transparent border border-border font-mono text-sm w-full px-3 py-2
-    focus:outline-none focus:border-accent transition-colors;
+  @apply bg-transparent border font-mono text-sm w-full px-3 py-2
+    focus:outline-none transition-colors;
+  border-color: var(--border);
   color: var(--text);
+  min-height: 44px;
 }
-.input::placeholder {
-  color: var(--text-muted);
-}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--text-muted); }
 
-/* Priority badge colors */
+/* ─── Priority badges ────────────────────────────────────────────────────────  */
 .priority-critical { color: var(--critical); border-color: var(--critical); }
 .priority-high     { color: var(--high);     border-color: var(--high); }
 .priority-medium   { color: var(--medium);   border-color: var(--medium); }
 .priority-low      { color: var(--low);      border-color: var(--low); }
 
-/* Blinking cursor */
-.blink {
-  animation: blink 1s step-end infinite;
-}
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+/* ─── Animations ─────────────────────────────────────────────────────────────  */
+.blink { animation: blink 1s step-end infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.page-enter { animation: pageEnter 0.25s ease forwards; }
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Page fade in */
-.page-enter {
-  animation: pageEnter 0.3s ease forwards;
+/* Bottom sheet slide up */
+.sheet-enter { animation: sheetUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+@keyframes sheetUp {
+  from { transform: translateY(100%); opacity: 0.7; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+
+/* ─── Bottom Nav — Android/iOS safe area ─────────────────────────────────── */
+.bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+}
+
+/* ─── XP Bar ─────────────────────────────────────────────────────────────── */
+.xp-bar-fill {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ─── Focus ring for accessibility ──────────────────────────────────────── */
+*:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }

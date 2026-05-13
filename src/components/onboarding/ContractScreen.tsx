@@ -78,6 +78,12 @@ export default function ContractScreen() {
       notificationsEnabled: false,
       installBannerDismissed: false,
       theme: 'dark-terminal',
+      xp: 0,
+      level: 1,
+      streakFreezes: 3,
+      freezedDates: [],
+      reminderTime: null,
+      soundEnabled: true,
     };
     for (const goal of goals) await addGoal(goal);
     await saveSettings(settings);
