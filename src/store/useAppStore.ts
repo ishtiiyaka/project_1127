@@ -125,6 +125,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (migratedSettings.freezedDates === undefined) { (migratedSettings as AppSettings).freezedDates = []; changed = true; }
       if (migratedSettings.reminderTime === undefined) { (migratedSettings as AppSettings).reminderTime = null; changed = true; }
       if (migratedSettings.soundEnabled === undefined) { (migratedSettings as AppSettings).soundEnabled = true; changed = true; }
+      if (migratedSettings.totalDays === undefined) { (migratedSettings as AppSettings).totalDays = 1127; changed = true; }
       if (changed) await dbSaveSettings(migratedSettings);
     }
 

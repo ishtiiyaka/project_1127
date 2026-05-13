@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { getDayNumber } from '../../lib/dateUtils';
-import { MILESTONE_DAYS } from '../../types';
+import { getMilestoneDays } from '../../types';
 
 export default function MilestoneWall() {
   const { milestones, settings } = useAppStore();
-  const dayNumber = settings ? getDayNumber(settings.startDate) : 0;
+  const totalDays = settings?.totalDays ?? 1127;
+  const dayNumber = settings ? getDayNumber(settings.startDate, totalDays) : 0;
+  const activeMilestones = getMilestoneDays(totalDays);
 
   return (
     <div className="min-h-screen bg-black page-enter pb-8">
@@ -15,7 +17,7 @@ export default function MilestoneWall() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
-        {MILESTONE_DAYS.map(ms => {
+        {activeMilestones.map(ms => {
           const record = milestones.find(m => m.day === ms);
           const reached = dayNumber >= ms;
           const progress = Math.min(Math.round((dayNumber / ms) * 100), 100);

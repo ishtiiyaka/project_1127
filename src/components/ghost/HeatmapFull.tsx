@@ -1,3 +1,4 @@
+import { useAppStore } from '../../store/useAppStore';
 import type { DayEntry } from '../../types';
 
 interface Props {
@@ -7,11 +8,12 @@ interface Props {
 }
 
 export default function HeatmapFull({ entries, startDate }: Props) {
+  const totalDays = useAppStore.getState().settings?.totalDays ?? 1127;
   const cells: { date: string; value: number; isFuture: boolean }[] = [];
   const start = new Date(startDate + 'T00:00:00');
   const today = new Date();
 
-  for (let i = 0; i < 1127; i++) {
+  for (let i = 0; i < totalDays; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

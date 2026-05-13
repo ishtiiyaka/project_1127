@@ -9,7 +9,8 @@ export default function ReportCardPage() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   if (!settings) return null;
-  const dayNumber = getDayNumber(settings.startDate);
+  const totalDays = settings.totalDays ?? 1127;
+  const dayNumber = getDayNumber(settings.startDate, totalDays);
 
   const grades = goals.map(g => calculateReportCard(g, entries, settings.startDate));
   grades.sort((a, b) => b.overallScore - a.overallScore);
@@ -65,7 +66,7 @@ export default function ReportCardPage() {
           {/* Header */}
           <div className="border border-accent/30 p-4 space-y-1">
             <div className="font-display text-accent text-lg tracking-widest text-glow">PROJECT 1127</div>
-            <div className="font-mono text-xs text-muted">PROGRESS REPORT — DAY {dayNumber} OF 1,127</div>
+            <div className="font-mono text-xs text-muted">PROGRESS REPORT — DAY {dayNumber} OF {totalDays.toLocaleString()}</div>
             <div className="font-mono text-xs text-muted">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
 
@@ -125,7 +126,7 @@ export default function ReportCardPage() {
 
           {/* Footer */}
           <div className="font-mono text-xs text-muted text-center border-t border-border pt-3">
-            {1127 - dayNumber} DAYS REMAINING — KEEP THE CONTRACT
+            {totalDays - dayNumber} DAYS REMAINING — KEEP THE CONTRACT
           </div>
         </div>
       </div>

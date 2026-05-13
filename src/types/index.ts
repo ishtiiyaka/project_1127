@@ -6,8 +6,15 @@ export type MilestoneDay = 100 | 250 | 500 | 750 | 1000 | 1127;
 export type Theme = 'dark-terminal' | 'amber-retro' | 'blue-ice' | 'red-alert';
 export type Frequency = 'daily' | '5x' | '3x' | 'weekdays';
 
-export const TOTAL_DAYS = 1127;
+export const TOTAL_DAYS = 1127; // default fallback only
 export const MILESTONE_DAYS: MilestoneDay[] = [100, 250, 500, 750, 1000, 1127];
+
+/** Compute milestone checkpoints scaled to a custom total duration */
+export function getMilestoneDays(totalDays: number): number[] {
+  if (totalDays <= 100) return [Math.round(totalDays * 0.5), totalDays];
+  const pcts = [0.089, 0.222, 0.444, 0.666, 0.888, 1.0]; // same ratios as 1127
+  return pcts.map(p => Math.round(totalDays * p)).filter((v, i, a) => a.indexOf(v) === i);
+}
 
 export const LEVEL_THRESHOLDS = [
   0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800,
@@ -84,6 +91,7 @@ export interface MilestoneRecord {
 export interface AppSettings {
   startDate: string;
   goalCount: number;
+  totalDays: number;        // user-chosen challenge duration (default 1127)
   weeklyTarget: number;
   weeklyReviewDay: number;
   notificationsEnabled: boolean;

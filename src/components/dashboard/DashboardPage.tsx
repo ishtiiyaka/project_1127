@@ -4,7 +4,7 @@ import { useAppStore, getLevelFromXP, getXPForNextLevel, getXPForCurrentLevel } 
 import { getDayNumber, getDaysRemaining, today, isTodayWeekday, getWeekStart, getStreakLength } from '../../lib/dateUtils';
 import { getQuoteForDay } from '../../lib/quotes';
 import { getDailyGeneralTip } from '../../lib/tips';
-import { MILESTONE_DAYS, TOTAL_DAYS } from '../../types';
+import { MILESTONE_DAYS, getMilestoneDays } from '../../types';
 import CountdownHeader from './CountdownHeader';
 import GoalCard from './GoalCard';
 import DailyReflection from './DailyReflection';
@@ -23,8 +23,9 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { settings, goals, entries, milestones, unlockMilestone } = useAppStore();
 
-  const dayNumber = settings ? getDayNumber(settings.startDate) : 1;
-  const daysRemaining = settings ? getDaysRemaining(settings.startDate) : TOTAL_DAYS;
+  const totalDays = settings?.totalDays ?? 1127;
+  const dayNumber = settings ? getDayNumber(settings.startDate, totalDays) : 1;
+  const daysRemaining = settings ? getDaysRemaining(settings.startDate, totalDays) : totalDays;
   const quote = getQuoteForDay(dayNumber);
   const todayStr = today();
   const tip = getDailyGeneralTip(dayNumber);
@@ -52,7 +53,8 @@ export default function DashboardPage() {
   // Milestone unlocks
   useEffect(() => {
     if (!settings) return;
-    for (const ms of MILESTONE_DAYS) {
+    const activeMilestones = getMilestoneDays(totalDays);
+    for (const ms of activeMilestones) {
       if (dayNumber >= ms && !milestones.find(m => m.day === ms)) {
         const realEntries = entries.filter(e => !e.isAutoFilled);
         const totalElapsed = Math.max(dayNumber - 1, 1);
@@ -80,11 +82,11 @@ export default function DashboardPage() {
 
   const allRealEntryDates = new Set(entries.filter(e => !e.isAutoFilled).map(e => e.date));
   const globalStreak = settings ? getStreakLength(allRealEntryDates, settings.startDate) : 0;
-  const progress = ((dayNumber - 1) / TOTAL_DAYS) * 100;
+  const progress = ((dayNumber - 1) / totalDays) * 100;
 
   return (
     <div className="min-h-screen bg-black page-enter" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 72px)' }}>
-      <CountdownHeader dayNumber={dayNumber} daysRemaining={daysRemaining} progress={progress} />
+      <CountdownHeader dayNumber={dayNumber} daysRemaining={daysRemaining} progress={progress} totalDays={totalDays} />
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
 

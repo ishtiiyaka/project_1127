@@ -5,7 +5,16 @@ import GoalConfigurator from './GoalConfigurator';
 import type { AppSettings, Goal } from '../../types';
 import { today, uid } from '../../lib/dateUtils';
 
-type Step = 'welcome' | 'goals' | 'target' | 'reviewDay' | 'confirm';
+type Step = 'welcome' | 'duration' | 'goals' | 'target' | 'reviewDay' | 'confirm';
+
+const PRESET_DURATIONS = [
+  { days: 365,  label: '365 DAYS',  sub: '1 Year' },
+  { days: 500,  label: '500 DAYS',  sub: 'Power Year' },
+  { days: 730,  label: '730 DAYS',  sub: '2 Years' },
+  { days: 1000, label: '1000 DAYS', sub: 'The Thousand' },
+  { days: 1127, label: '1127 DAYS', sub: 'The Original' },
+  { days: 0,    label: 'CUSTOM',    sub: 'Set your own' },
+];
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -66,6 +75,9 @@ export default function ContractScreen() {
   const [goals, setGoals] = useState<Goal[]>(DEFAULT_GOALS);
   const [weeklyTarget, setWeeklyTarget] = useState(7);
   const [reviewDay, setReviewDay] = useState(1); // Monday
+  const [duration, setDuration] = useState(1127);
+  const [customDuration, setCustomDuration] = useState(1127);
+  const [useCustom, setUseCustom] = useState(false);
   const [signing, setSigning] = useState(false);
 
   async function handleSign() {
@@ -73,6 +85,7 @@ export default function ContractScreen() {
     const settings: AppSettings = {
       startDate: today(),
       goalCount: goals.length,
+      totalDays: duration,
       weeklyTarget,
       weeklyReviewDay: reviewDay,
       notificationsEnabled: false,
@@ -95,10 +108,10 @@ export default function ContractScreen() {
       {/* Header */}
       <div className="mb-8 text-center">
         <div className="font-display text-accent text-2xl sm:text-4xl font-black tracking-widest text-glow mb-2">
-          PROJECT 1127
+          PROJECT {duration}
         </div>
         <div className="font-mono text-muted text-xs tracking-widest">
-          1,127 DAYS. NO EXCEPTIONS.
+          {duration.toLocaleString()} DAYS. NO EXCEPTIONS.
         </div>
       </div>
 
@@ -107,8 +120,7 @@ export default function ContractScreen() {
         <div className="max-w-md w-full text-center space-y-8">
           <div className="card p-8 space-y-6">
             <p className="font-mono text-sm text-text leading-relaxed">
-              You are about to commit to{' '}
-              <span className="text-accent font-bold">1,127 days</span> of deliberate effort.
+              You are about to commit to deliberate effort, every single day.
             </p>
             <p className="font-mono text-xs text-muted leading-relaxed">
               Every day will be logged. Every missed day will be recorded as{' '}
@@ -119,9 +131,80 @@ export default function ContractScreen() {
               ARE YOU READY TO SIGN?
             </div>
           </div>
-          <button className="btn-primary w-full py-4 text-sm font-display tracking-widest" onClick={() => setStep('goals')}>
-            SIGN THE CONTRACT
+          <button className="btn-primary w-full py-4 text-sm font-display tracking-widest" onClick={() => setStep('duration')}>
+            BEGIN →
           </button>
+        </div>
+      )}
+
+      {/* Step: Duration */}
+      {step === 'duration' && (
+        <div className="max-w-md w-full space-y-6">
+          <div className="font-mono text-xs text-muted tracking-widest text-center mb-4">
+            STEP 0 OF 4 — CHOOSE YOUR DURATION
+          </div>
+          <div className="card p-6 space-y-4">
+            <p className="font-mono text-xs text-muted">
+              How many days is your commitment? You can't change this after signing.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {PRESET_DURATIONS.filter(p => p.days > 0).map(p => (
+                <button
+                  key={p.days}
+                  onClick={() => { setDuration(p.days); setUseCustom(false); }}
+                  className={`py-3 px-2 font-mono text-xs border transition-all flex flex-col items-center gap-1 ${
+                    duration === p.days && !useCustom
+                      ? 'border-accent text-accent bg-accent/10'
+                      : 'border-border text-muted'
+                  }`}
+                >
+                  <span className="font-display text-sm font-bold">{p.label}</span>
+                  <span className="text-xs opacity-70">{p.sub}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setUseCustom(true)}
+                className={`py-3 px-2 font-mono text-xs border transition-all flex flex-col items-center gap-1 ${
+                  useCustom ? 'border-accent text-accent bg-accent/10' : 'border-border text-muted'
+                }`}
+              >
+                <span className="font-display text-sm font-bold">CUSTOM</span>
+                <span className="text-xs opacity-70">Set your own</span>
+              </button>
+            </div>
+
+            {useCustom && (
+              <div className="space-y-2">
+                <div className="font-mono text-xs text-muted">CUSTOM DAYS (30–3650)</div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={30}
+                    max={3650}
+                    className="input flex-1"
+                    value={customDuration}
+                    onChange={e => {
+                      const v = Math.max(30, Math.min(3650, Number(e.target.value)));
+                      setCustomDuration(v);
+                      setDuration(v);
+                    }}
+                  />
+                  <span className="font-mono text-xs text-muted">days</span>
+                </div>
+                <div className="font-mono text-xs text-muted">
+                  ≈ {(customDuration / 365).toFixed(1)} years
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-border pt-3 font-mono text-xs text-accent text-center">
+              SELECTED: {duration.toLocaleString()} DAYS
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button className="btn-ghost flex-1" onClick={() => setStep('welcome')}>← BACK</button>
+            <button className="btn-primary flex-1" onClick={() => setStep('goals')}>NEXT →</button>
+          </div>
         </div>
       )}
 
@@ -241,7 +324,7 @@ export default function ContractScreen() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted">DURATION</span>
-                <span className="text-accent">1,127 DAYS</span>
+                <span className="text-accent">{duration.toLocaleString()} DAYS</span>
               </div>
             </div>
           </div>

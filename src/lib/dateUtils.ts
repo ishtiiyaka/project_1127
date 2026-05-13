@@ -1,4 +1,4 @@
-import { TOTAL_DAYS } from '../types';
+import { TOTAL_DAYS as DEFAULT_TOTAL_DAYS } from '../types';
 
 /** Today as YYYY-MM-DD */
 export function today(): string {
@@ -19,17 +19,17 @@ export function parseDate(s: string): Date {
   return new Date(y, m - 1, d);
 }
 
-/** 1-based day number in the 1127-day journey */
-export function getDayNumber(startDate: string): number {
+/** 1-based day number in the journey */
+export function getDayNumber(startDate: string, totalDays = DEFAULT_TOTAL_DAYS): number {
   const start = parseDate(startDate);
   const now = parseDate(today());
   const diff = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.min(Math.max(diff + 1, 1), TOTAL_DAYS);
+  return Math.min(Math.max(diff + 1, 1), totalDays);
 }
 
 /** Days remaining in the journey */
-export function getDaysRemaining(startDate: string): number {
-  return Math.max(TOTAL_DAYS - getDayNumber(startDate) + 1, 0);
+export function getDaysRemaining(startDate: string, totalDays = DEFAULT_TOTAL_DAYS): number {
+  return Math.max(totalDays - getDayNumber(startDate, totalDays) + 1, 0);
 }
 
 /** All dates from startDate up to and including yesterday (YYYY-MM-DD[]) */
