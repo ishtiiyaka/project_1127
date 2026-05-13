@@ -3,7 +3,7 @@
 export type Priority = 'critical' | 'high' | 'medium' | 'low';
 export type Mood = 1 | 2 | 3 | 4 | 5;
 export type MilestoneDay = 100 | 250 | 500 | 750 | 1000 | 1127;
-export type Theme = 'dark-terminal' | 'amber-retro' | 'blue-ice' | 'red-alert';
+export type Theme = 'dark-terminal' | 'amber-retro' | 'blue-ice' | 'red-alert' | 'neon-cyber' | 'paper-light';
 export type Frequency = 'daily' | '5x' | '3x' | 'weekdays';
 
 export const TOTAL_DAYS = 1127; // default fallback only

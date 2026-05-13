@@ -2,22 +2,35 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { requestNotificationPermission, scheduleReminderNotification, cancelReminderNotification } from '../../lib/notifications';
-import type { Theme } from '../../types';
+import { uid } from '../../lib/dateUtils';
+import type { Theme, Goal, Priority } from '../../types';
+
+const PRIORITIES: Priority[] = ['critical', 'high', 'medium', 'low'];
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const THEMES: { id: Theme; label: string; accent: string }[] = [
-  { id: 'dark-terminal', label: 'TERMINAL', accent: '#00ff41' },
-  { id: 'amber-retro',   label: 'AMBER',    accent: '#ffb300' },
-  { id: 'blue-ice',      label: 'ICE',      accent: '#00d4ff' },
-  { id: 'red-alert',     label: 'ALERT',    accent: '#ff2222' },
+const THEMES: { id: Theme; label: string; accent: string; bg: string; description: string }[] = [
+  { id: 'dark-terminal', label: 'TERMINAL', accent: '#00ff41', bg: '#000000', description: 'Matrix green on black' },
+  { id: 'amber-retro',   label: 'AMBER',    accent: '#ffb300', bg: '#0d0800', description: 'Old CRT monitor' },
+  { id: 'blue-ice',      label: 'ICE',      accent: '#00d4ff', bg: '#00080f', description: 'Arctic blue haze' },
+  { id: 'red-alert',     label: 'ALERT',    accent: '#ff2222', bg: '#0d0000', description: 'Critical system mode' },
+  { id: 'neon-cyber',    label: 'CYBER',    accent: '#cc00ff', bg: '#0a0015', description: 'Cyberpunk purple glow' },
+  { id: 'paper-light',   label: 'PAPER',    accent: '#1a6b3c', bg: '#fafaf8', description: 'Clean minimal light' },
 ];
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { settings, patchSettings, resetAll, goals } = useAppStore();
+  const { settings, patchSettings, resetAll, goals, addGoal, updateGoal, removeGoal } = useAppStore();
   const [confirmReset, setConfirmReset] = useState(0);
   const [notifStatus, setNotifStatus] = useState<string | null>(null);
+
+  // Goal management state
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [newGoalName, setNewGoalName] = useState('');
+  const [newGoalPriority, setNewGoalPriority] = useState<Priority>('high');
+  const [newGoalTargetDays, setNewGoalTargetDays] = useState(365);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showAddGoal, setShowAddGoal] = useState(false);
 
   if (!settings) return null;
 
@@ -34,6 +47,56 @@ export default function SettingsPage() {
     if (confirmReset < 2) { setConfirmReset(c => c + 1); return; }
     await resetAll();
     navigate('/onboard');
+  }
+
+  // Goal management handlers
+  function startEditGoal(goal: Goal) {
+    setEditingGoal(goal);
+    setNewGoalName(goal.name);
+    setNewGoalPriority(goal.priority);
+    setNewGoalTargetDays(goal.targetDays ?? 365);
+    setShowAddGoal(false);
+  }
+
+  function cancelGoalEdit() {
+    setEditingGoal(null);
+    setShowAddGoal(false);
+    setNewGoalName('');
+    setNewGoalPriority('high');
+    setNewGoalTargetDays(365);
+  }
+
+  async function handleSaveGoal() {
+    if (!newGoalName.trim()) return;
+    if (editingGoal) {
+      await updateGoal({
+        ...editingGoal,
+        name: newGoalName.trim(),
+        priority: newGoalPriority,
+        targetDays: newGoalTargetDays,
+      });
+    } else {
+      await addGoal({
+        id: uid(),
+        name: newGoalName.trim(),
+        priority: newGoalPriority,
+        createdAt: new Date().toISOString(),
+        locked: false,
+        targetDays: newGoalTargetDays,
+      });
+      await patchSettings({ goalCount: goals.length + 1 });
+    }
+    cancelGoalEdit();
+  }
+
+  async function handleDeleteGoal(id: string) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return;
+    }
+    await removeGoal(id);
+    await patchSettings({ goalCount: Math.max(goals.length - 1, 1) });
+    setConfirmDeleteId(null);
   }
 
   async function handleUseFreeze() {
@@ -100,23 +163,132 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Goal Management */}
+        <div className="card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="font-mono text-xs text-muted tracking-widest">MANAGE GOALS</div>
+            {goals.length < 7 && !showAddGoal && !editingGoal && (
+              <button
+                className="font-mono text-xs text-accent hover:text-accent/70 transition-colors"
+                onClick={() => { setShowAddGoal(true); setEditingGoal(null); setNewGoalName(''); setNewGoalPriority('high'); setNewGoalTargetDays(365); }}
+              >
+                + ADD GOAL
+              </button>
+            )}
+          </div>
+
+          {/* Add / Edit form */}
+          {(showAddGoal || editingGoal) && (
+            <div className="border border-border p-3 space-y-3">
+              <div className="font-mono text-xs text-accent">{editingGoal ? 'EDIT GOAL' : 'NEW GOAL'}</div>
+              <input
+                className="input text-sm"
+                placeholder="Goal name..."
+                maxLength={80}
+                value={newGoalName}
+                onChange={e => setNewGoalName(e.target.value)}
+                autoFocus
+              />
+              <div className="space-y-1">
+                <div className="font-mono text-xs text-muted">PRIORITY</div>
+                <div className="flex gap-1">
+                  {PRIORITIES.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setNewGoalPriority(p)}
+                      className={`text-xs font-mono border px-2 py-1 transition-all priority-${p} ${newGoalPriority === p ? 'bg-current/10' : 'opacity-40'}`}
+                    >
+                      {p.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xs text-muted shrink-0">TARGET DAYS</span>
+                <input
+                  type="number"
+                  min={30}
+                  max={1127}
+                  className="input w-20 text-sm text-center"
+                  value={newGoalTargetDays}
+                  onChange={e => setNewGoalTargetDays(Math.max(30, Math.min(1127, Number(e.target.value))))}
+                />
+              </div>
+              <div className="flex gap-2">
+                <button className="btn-ghost flex-1 py-2 text-xs" onClick={cancelGoalEdit}>CANCEL</button>
+                <button
+                  className="btn-primary flex-1 py-2 text-xs"
+                  disabled={!newGoalName.trim()}
+                  onClick={handleSaveGoal}
+                >
+                  {editingGoal ? 'SAVE CHANGES' : 'ADD GOAL'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Goals list */}
+          <div className="space-y-2">
+            {goals.map(goal => (
+              <div
+                key={goal.id}
+                className="flex items-center gap-2 border border-border px-3 py-2"
+                style={{ borderLeft: `2px solid var(--${goal.priority === 'critical' ? 'critical' : goal.priority === 'high' ? 'high' : goal.priority === 'medium' ? 'medium' : 'low'})` }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-xs text-text truncate">{goal.name}</div>
+                  <div className="font-mono text-xs text-muted">{goal.priority.toUpperCase()} · {goal.targetDays ?? 365}d target</div>
+                </div>
+                <button
+                  className="font-mono text-xs text-muted hover:text-accent transition-colors px-2 py-1 shrink-0"
+                  onClick={() => startEditGoal(goal)}
+                >
+                  EDIT
+                </button>
+                <button
+                  className={`font-mono text-xs px-2 py-1 shrink-0 transition-colors ${confirmDeleteId === goal.id ? 'text-critical border border-critical' : 'text-muted hover:text-critical'}`}
+                  onClick={() => handleDeleteGoal(goal.id)}
+                  disabled={goals.length <= 1}
+                  title={goals.length <= 1 ? 'Cannot delete last goal' : ''}
+                >
+                  {confirmDeleteId === goal.id ? 'CONFIRM?' : 'DEL'}
+                </button>
+              </div>
+            ))}
+            {confirmDeleteId && (
+              <div className="flex justify-end">
+                <button className="font-mono text-xs text-muted hover:text-text px-2" onClick={() => setConfirmDeleteId(null)}>
+                  cancel delete
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="font-mono text-xs text-muted">
+            {goals.length}/7 goals · Deleting a goal keeps its entry history in the archive.
+          </div>
+        </div>
+
         {/* Theme */}
         <div className="card p-4 space-y-3">
           <div className="font-mono text-xs text-muted tracking-widest">THEME</div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {THEMES.map(t => (
               <button
                 key={t.id}
                 onClick={() => handleTheme(t.id)}
-                className="py-3 font-mono text-xs border transition-all flex flex-col items-center gap-1"
+                className="py-3 px-2 font-mono text-xs border transition-all flex flex-col items-center gap-1.5"
                 style={{
                   borderColor: settings.theme === t.id ? t.accent : 'var(--border)',
                   color: settings.theme === t.id ? t.accent : 'var(--text-muted)',
-                  background: settings.theme === t.id ? `${t.accent}15` : 'transparent',
+                  background: settings.theme === t.id ? `${t.accent}18` : 'transparent',
                 }}
               >
-                <div className="w-4 h-4 rounded-full" style={{ background: t.accent }} />
-                {t.label}
+                {/* Mini preview swatch */}
+                <div className="w-10 h-6 flex items-center justify-center" style={{ background: t.bg, border: `1px solid ${t.accent}`, borderRadius: 3 }}>
+                  <div className="w-5 h-1 rounded-full" style={{ background: t.accent }} />
+                </div>
+                <span className="font-display font-bold" style={{ fontSize: '10px' }}>{t.label}</span>
+                <span className="text-center leading-tight opacity-60" style={{ fontSize: '8px' }}>{t.description}</span>
               </button>
             ))}
           </div>

@@ -63,6 +63,123 @@
   --low: #00bfff;
 }
 
+/* NEON CYBER — Purple/magenta cyberpunk, rounded cards, gradient glows */
+[data-theme="neon-cyber"] {
+  --bg: #0a0015;
+  --surface: #110022;
+  --border: #3a0066;
+  --accent: #cc00ff;
+  --accent-dim: #660099;
+  --text: #f0d0ff;
+  --text-muted: #7733aa;
+  --critical: #ff0066;
+  --high: #ff6600;
+  --medium: #ffcc00;
+  --low: #00ffcc;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', sans-serif;
+  --radius: 8px;
+}
+[data-theme="neon-cyber"] .card {
+  background: linear-gradient(135deg, #110022 0%, #1a0033 100%);
+  border: 1px solid #3a0066;
+  border-radius: var(--radius, 8px);
+  box-shadow: 0 0 12px rgba(204, 0, 255, 0.08);
+}
+[data-theme="neon-cyber"] .btn-primary {
+  background: linear-gradient(135deg, #cc00ff22 0%, #6600ff22 100%);
+  border-radius: var(--radius, 8px);
+  box-shadow: 0 0 8px rgba(204, 0, 255, 0.3);
+}
+[data-theme="neon-cyber"] .btn-primary:hover {
+  background: linear-gradient(135deg, #cc00ff 0%, #6600ff 100%);
+  color: white;
+}
+[data-theme="neon-cyber"] .btn-ghost {
+  border-radius: var(--radius, 8px);
+}
+[data-theme="neon-cyber"] .input {
+  border-radius: var(--radius, 8px);
+  background: rgba(204,0,255,0.05);
+}
+[data-theme="neon-cyber"] body::before {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(204, 0, 255, 0.015) 2px,
+    rgba(204, 0, 255, 0.015) 4px
+  );
+}
+[data-theme="neon-cyber"] .xp-bar-fill {
+  background: linear-gradient(90deg, #cc00ff, #6600ff);
+  box-shadow: 0 0 8px rgba(204, 0, 255, 0.6);
+}
+
+/* PAPER LIGHT — Clean minimal white theme, completely different feel */
+[data-theme="paper-light"] {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border: #e2e2dc;
+  --accent: #1a6b3c;
+  --accent-dim: #a8d5bb;
+  --text: #1a1a1a;
+  --text-muted: #888880;
+  --critical: #c0392b;
+  --high: #d35400;
+  --medium: #b7950b;
+  --low: #1a5276;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', sans-serif;
+  --radius: 4px;
+}
+[data-theme="paper-light"] body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+[data-theme="paper-light"] body::before {
+  display: none; /* no scanlines on light theme */
+}
+[data-theme="paper-light"] .card {
+  background: #ffffff;
+  border: 1px solid #e2e2dc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+[data-theme="paper-light"] .btn-primary {
+  background: transparent;
+  border-color: #1a6b3c;
+  color: #1a6b3c;
+}
+[data-theme="paper-light"] .btn-primary:hover {
+  background: #1a6b3c;
+  color: white;
+}
+[data-theme="paper-light"] .btn-ghost {
+  border-color: #e2e2dc;
+  color: #888880;
+}
+[data-theme="paper-light"] .btn-ghost:hover {
+  border-color: #1a6b3c;
+  color: #1a6b3c;
+}
+[data-theme="paper-light"] .btn-danger {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+[data-theme="paper-light"] .input {
+  background: #fafaf8;
+  border-color: #e2e2dc;
+  color: #1a1a1a;
+}
+[data-theme="paper-light"] ::-webkit-scrollbar-track { background: #fafaf8; }
+[data-theme="paper-light"] ::-webkit-scrollbar-thumb { background: #c8c8c0; }
+[data-theme="paper-light"] .text-glow { text-shadow: none; }
+[data-theme="paper-light"] .glow-accent { box-shadow: 0 0 4px rgba(26,107,60,0.2); }
+[data-theme="paper-light"] .xp-bar-fill {
+  background: #1a6b3c;
+  box-shadow: none;
+}
+
 /* ─── Reset & Base ─────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
