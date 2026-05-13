@@ -10,12 +10,12 @@ const PRIORITIES: Priority[] = ['critical', 'high', 'medium', 'low'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const THEMES: { id: Theme; label: string; accent: string; bg: string; description: string }[] = [
-  { id: 'dark-terminal', label: 'TERMINAL', accent: '#00ff41', bg: '#000000', description: 'Matrix green on black' },
-  { id: 'amber-retro',   label: 'AMBER',    accent: '#ffb300', bg: '#0d0800', description: 'Old CRT monitor' },
-  { id: 'blue-ice',      label: 'ICE',      accent: '#00d4ff', bg: '#00080f', description: 'Arctic blue haze' },
-  { id: 'red-alert',     label: 'ALERT',    accent: '#ff2222', bg: '#0d0000', description: 'Critical system mode' },
-  { id: 'neon-cyber',    label: 'CYBER',    accent: '#cc00ff', bg: '#0a0015', description: 'Cyberpunk purple glow' },
-  { id: 'paper-light',   label: 'PAPER',    accent: '#1a6b3c', bg: '#fafaf8', description: 'Clean minimal light' },
+  { id: 'dark-terminal', label: 'TERMINAL', accent: '#00ffa3', bg: '#030504', description: 'High-intensity electric mint on near-black' },
+  { id: 'amber-retro',   label: 'AMBER',    accent: '#ff4400', bg: '#060302', description: 'Industrial safety orange on deep charcoal void' },
+  { id: 'blue-ice',      label: 'ICE',      accent: '#00f0ff', bg: '#02040a', description: 'Sharp clinical cyan piercing dark matter' },
+  { id: 'red-alert',     label: 'ALERT',    accent: '#ff003c', bg: '#0a0102', description: 'Uncompromising hyper-crimson on pitch black' },
+  { id: 'neon-cyber',    label: 'CYBER',    accent: '#ff0055', bg: '#050104', description: 'Deep void punctured by sharp magenta strikes' },
+  { id: 'paper-light',   label: 'PAPER',    accent: '#0000ff', bg: '#f2f2ee', description: 'Brutalist-lite raw white with stark pure blue' },
 ];
 
 export default function SettingsPage() {
