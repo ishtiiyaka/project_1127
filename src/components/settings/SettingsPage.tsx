@@ -15,7 +15,7 @@ const THEMES: { id: Theme; label: string; accent: string }[] = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { settings, saveSettings, patchSettings, resetAll, goals } = useAppStore();
+  const { settings, patchSettings, resetAll, goals } = useAppStore();
   const [confirmReset, setConfirmReset] = useState(0);
   const [notifStatus, setNotifStatus] = useState<string | null>(null);
 

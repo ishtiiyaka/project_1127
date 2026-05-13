@@ -4,7 +4,7 @@ import { useAppStore, getLevelFromXP, getXPForNextLevel, getXPForCurrentLevel } 
 import { getDayNumber, getDaysRemaining, today, isTodayWeekday, getWeekStart, getStreakLength } from '../../lib/dateUtils';
 import { getQuoteForDay } from '../../lib/quotes';
 import { getDailyGeneralTip } from '../../lib/tips';
-import { MILESTONE_DAYS, getMilestoneDays } from '../../types';
+import { getMilestoneDays } from '../../types';
 import CountdownHeader from './CountdownHeader';
 import GoalCard from './GoalCard';
 import DailyReflection from './DailyReflection';
@@ -55,7 +55,7 @@ export default function DashboardPage() {
     if (!settings) return;
     const activeMilestones = getMilestoneDays(totalDays);
     for (const ms of activeMilestones) {
-      if (dayNumber >= ms && !milestones.find(m => m.day === ms)) {
+      if (dayNumber >= ms && !milestones.find(m => m.day === (ms as import('../../types').MilestoneDay))) {
         const realEntries = entries.filter(e => !e.isAutoFilled);
         const totalElapsed = Math.max(dayNumber - 1, 1);
         const completionRate = Math.round((realEntries.length / (totalElapsed * goals.length || 1)) * 100);
@@ -64,7 +64,7 @@ export default function DashboardPage() {
         const loggedDates = new Set(realEntries.map(e => e.date));
         const longestStreak = Array.from(loggedDates).length;
         unlockMilestone({
-          day: ms,
+          day: ms as import('../../types').MilestoneDay,
           unlockedAt: new Date().toISOString(),
           completionRate,
           totalEntries: realEntries.length,
