@@ -13,6 +13,8 @@ export interface Goal {
   priority: Priority;
   createdAt: string; // ISO string
   locked: boolean;
+  targetDays?: number;   // projected study days to complete this goal
+  description?: string;  // optional short description
 }
 
 export interface DayEntry {

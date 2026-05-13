@@ -24,6 +24,18 @@ export default function GoalCard({ goal }: Props) {
   const completionRate = Math.round((realDates.size / elapsed) * 100);
   const isLocked = todayEntry?.sealed;
 
+  // ── Projected completion timeline ─────────────────────────────────────────
+  // Based on actual study rate vs target days needed
+  const studiedDays = realDates.size;
+  const targetDays = goal.targetDays ?? 365;
+  const remainingStudyDays = Math.max(targetDays - studiedDays, 0);
+  const dailyRate = elapsed > 0 ? studiedDays / elapsed : 0; // fraction of days actually studied
+  const projectedCalendarDaysLeft = dailyRate > 0 ? Math.ceil(remainingStudyDays / dailyRate) : null;
+  const projectedEndDate = projectedCalendarDaysLeft !== null
+    ? new Date(Date.now() + projectedCalendarDaysLeft * 86400000)
+    : null;
+  const projectedProgress = Math.min(Math.round((studiedDays / targetDays) * 100), 100);
+
   const priorityColors: Record<string, string> = {
     critical: 'var(--critical)', high: 'var(--high)',
     medium: 'var(--medium)', low: 'var(--low)',
@@ -36,6 +48,9 @@ export default function GoalCard({ goal }: Props) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="font-mono text-sm text-text truncate">{goal.name}</div>
+            {goal.description && (
+              <div className="font-mono text-xs text-muted truncate mt-0.5">{goal.description}</div>
+            )}
           </div>
           <span className={`text-xs font-mono border px-1.5 py-0.5 shrink-0 priority-${goal.priority}`}>
             {goal.priority.toUpperCase()}
@@ -70,6 +85,41 @@ export default function GoalCard({ goal }: Props) {
                 style={{ width: `${completionRate}%` }}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Projected timeline */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs font-mono">
+            <span className="text-muted">GOAL PROGRESS</span>
+            <span className="text-accent">
+              {studiedDays}<span className="text-muted">/{targetDays} study days</span>
+            </span>
+          </div>
+          <div className="h-1.5 bg-border rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                projectedProgress >= 100 ? 'bg-accent' :
+                projectedProgress >= 60 ? 'bg-accent/80' :
+                projectedProgress >= 30 ? 'bg-high/80' : 'bg-medium/80'
+              }`}
+              style={{ width: `${projectedProgress}%` }}
+            />
+          </div>
+          <div className="font-mono text-xs text-muted">
+            {studiedDays >= targetDays ? (
+              <span className="text-accent">✓ TARGET REACHED</span>
+            ) : projectedEndDate ? (
+              <>
+                <span className="text-muted">ETA: </span>
+                <span className="text-text">
+                  {projectedEndDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </span>
+                <span className="text-muted"> ({remainingStudyDays} study days left)</span>
+              </>
+            ) : (
+              <span className="text-muted">Log entries to see projection</span>
+            )}
           </div>
         </div>
 

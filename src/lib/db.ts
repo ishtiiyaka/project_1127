@@ -92,6 +92,73 @@ export async function getSettings(): Promise<AppSettings | undefined> {
 export async function saveSettings(settings: AppSettings): Promise<void> {
   await (await getDB()).put('settings', settings);
 }
+// ─── Backup / Restore ────────────────────────────────────────────────────────
+export interface FullBackup {
+  version: number;
+  exportedAt: string;
+  goals: Goal[];
+  entries: DayEntry[];
+  dailyLogs: DailyLog[];
+  weeklyReviews: WeeklyReview[];
+  milestones: MilestoneRecord[];
+  settings: AppSettings | undefined;
+}
+
+export async function exportBackup(): Promise<FullBackup> {
+  const db = await getDB();
+  const [goals, entries, dailyLogs, weeklyReviews, milestones, allSettings] = await Promise.all([
+    db.getAll('goals'),
+    db.getAll('entries'),
+    db.getAll('dailyLogs'),
+    db.getAll('weeklyReviews'),
+    db.getAll('milestones'),
+    db.getAll('settings'),
+  ]);
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    goals,
+    entries,
+    dailyLogs,
+    weeklyReviews,
+    milestones,
+    settings: allSettings[0],
+  };
+}
+
+export async function importBackup(backup: FullBackup): Promise<void> {
+  const db = await getDB();
+  // Clear existing data first
+  const clearTx = db.transaction(
+    ['goals', 'entries', 'dailyLogs', 'weeklyReviews', 'milestones', 'settings'],
+    'readwrite'
+  );
+  await Promise.all([
+    clearTx.objectStore('goals').clear(),
+    clearTx.objectStore('entries').clear(),
+    clearTx.objectStore('dailyLogs').clear(),
+    clearTx.objectStore('weeklyReviews').clear(),
+    clearTx.objectStore('milestones').clear(),
+    clearTx.objectStore('settings').clear(),
+  ]);
+  await clearTx.done;
+
+  // Re-import all records
+  const tx = db.transaction(
+    ['goals', 'entries', 'dailyLogs', 'weeklyReviews', 'milestones', 'settings'],
+    'readwrite'
+  );
+  await Promise.all([
+    ...backup.goals.map(r => tx.objectStore('goals').put(r)),
+    ...backup.entries.map(r => tx.objectStore('entries').put(r)),
+    ...backup.dailyLogs.map(r => tx.objectStore('dailyLogs').put(r)),
+    ...backup.weeklyReviews.map(r => tx.objectStore('weeklyReviews').put(r)),
+    ...backup.milestones.map(r => tx.objectStore('milestones').put(r)),
+    ...(backup.settings ? [tx.objectStore('settings').put(backup.settings)] : []),
+  ]);
+  await tx.done;
+}
+
 export async function clearAllData(): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(['goals', 'entries', 'dailyLogs', 'weeklyReviews', 'milestones', 'settings'], 'readwrite');

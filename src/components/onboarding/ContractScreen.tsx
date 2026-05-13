@@ -3,18 +3,67 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import GoalConfigurator from './GoalConfigurator';
 import type { AppSettings, Goal } from '../../types';
-import { today } from '../../lib/dateUtils';
+import { today, uid } from '../../lib/dateUtils';
 
 type Step = 'welcome' | 'goals' | 'target' | 'reviewDay' | 'confirm';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Default goals with projected timelines based on content depth & criticality
+const DEFAULT_GOALS: Goal[] = [
+  {
+    id: uid(),
+    name: 'AI Engineering Full Masterclass',
+    priority: 'critical',
+    createdAt: new Date().toISOString(),
+    locked: false,
+    targetDays: 600,
+    description: 'Deep ML/DL, LLMs, MLOps, deployment pipelines — full stack AI engineer path',
+  },
+  {
+    id: uid(),
+    name: 'Chinese (HSK 4)',
+    priority: 'critical',
+    createdAt: new Date().toISOString(),
+    locked: false,
+    targetDays: 500,
+    description: 'Vocabulary, grammar, reading & listening — HSK 1 through 4 progression',
+  },
+  {
+    id: uid(),
+    name: 'Finance for Business & Trading',
+    priority: 'critical',
+    createdAt: new Date().toISOString(),
+    locked: false,
+    targetDays: 400,
+    description: 'Business finance fundamentals, trading strategies, market analysis',
+  },
+  {
+    id: uid(),
+    name: 'Robotics',
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+    locked: false,
+    targetDays: 550,
+    description: 'Mechanics, kinematics, ROS2, control systems, sensor integration',
+  },
+  {
+    id: uid(),
+    name: 'Embedded Systems',
+    priority: 'medium',
+    createdAt: new Date().toISOString(),
+    locked: false,
+    targetDays: 350,
+    description: 'Microcontrollers, RTOS, firmware, protocols (I2C/SPI/UART)',
+  },
+];
 
 export default function ContractScreen() {
   const navigate = useNavigate();
   const { saveSettings, addGoal } = useAppStore();
 
   const [step, setStep] = useState<Step>('welcome');
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>(DEFAULT_GOALS);
   const [weeklyTarget, setWeeklyTarget] = useState(7);
   const [reviewDay, setReviewDay] = useState(1); // Monday
   const [signing, setSigning] = useState(false);
