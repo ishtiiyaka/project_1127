@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --border: #1a1a1a;
+  --accent: #00ff41;
+  --accent-dim: #007a1f;
+  --text: #e0e0e0;
+  --text-muted: #555555;
+  --critical: #ff3131;
+  --high: #ff8c00;
+  --medium: #ffd700;
+  --low: #00bfff;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 65, 0.015) 2px,
+    rgba(0, 255, 65, 0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent-dim);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Utility classes */
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+.text-accent { color: var(--accent); }
+.text-muted { color: var(--text-muted); }
+.border-surface { border-color: var(--border); }
+
+/* Glow effects */
+.glow-accent {
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+}
+.text-glow {
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+}
+
+/* Button base */
+.btn-primary {
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-accent text-accent
+    bg-transparent hover:bg-accent hover:text-black transition-all duration-150 cursor-pointer;
+}
+.btn-ghost {
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-border text-muted
+    bg-transparent hover:border-accent hover:text-accent transition-all duration-150 cursor-pointer;
+}
+.btn-danger {
+  @apply font-mono text-xs tracking-widest uppercase px-4 py-2 border border-critical text-critical
+    bg-transparent hover:bg-critical hover:text-black transition-all duration-150 cursor-pointer;
+}
+
+/* Card base */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Input base */
+.input {
+  @apply bg-transparent border border-border font-mono text-sm w-full px-3 py-2
+    focus:outline-none focus:border-accent transition-colors;
+  color: var(--text);
+}
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Priority badge colors */
+.priority-critical { color: var(--critical); border-color: var(--critical); }
+.priority-high     { color: var(--high);     border-color: var(--high); }
+.priority-medium   { color: var(--medium);   border-color: var(--medium); }
+.priority-low      { color: var(--low);      border-color: var(--low); }
+
+/* Blinking cursor */
+.blink {
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Page fade in */
+.page-enter {
+  animation: pageEnter 0.3s ease forwards;
+}
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,207 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppStore } from '../../store/useAppStore';
+import GoalConfigurator from './GoalConfigurator';
+import type { AppSettings, Goal } from '../../types';
+import { today } from '../../lib/dateUtils';
+
+type Step = 'welcome' | 'goals' | 'target' | 'reviewDay' | 'confirm';
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export default function ContractScreen() {
+  const navigate = useNavigate();
+  const { saveSettings, addGoal } = useAppStore();
+
+  const [step, setStep] = useState<Step>('welcome');
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [weeklyTarget, setWeeklyTarget] = useState(7);
+  const [reviewDay, setReviewDay] = useState(1); // Monday
+  const [signing, setSigning] = useState(false);
+
+  async function handleSign() {
+    setSigning(true);
+    const settings: AppSettings = {
+      startDate: today(),
+      goalCount: goals.length,
+      weeklyTarget,
+      weeklyReviewDay: reviewDay,
+      notificationsEnabled: false,
+      installBannerDismissed: false,
+      theme: 'dark-terminal',
+    };
+    for (const goal of goals) await addGoal(goal);
+    await saveSettings(settings);
+    navigate('/');
+  }
+
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 page-enter">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="font-display text-accent text-2xl sm:text-4xl font-black tracking-widest text-glow mb-2">
+          PROJECT 1127
+        </div>
+        <div className="font-mono text-muted text-xs tracking-widest">
+          1,127 DAYS. NO EXCEPTIONS.
+        </div>
+      </div>
+
+      {/* Step: Welcome */}
+      {step === 'welcome' && (
+        <div className="max-w-md w-full text-center space-y-8">
+          <div className="card p-8 space-y-6">
+            <p className="font-mono text-sm text-text leading-relaxed">
+              You are about to commit to{' '}
+              <span className="text-accent font-bold">1,127 days</span> of deliberate effort.
+            </p>
+            <p className="font-mono text-xs text-muted leading-relaxed">
+              Every day will be logged. Every missed day will be recorded as{' '}
+              <span className="text-critical">"Nothing"</span>. There are no exceptions.
+              There is no editing after the fact. This is a contract with yourself.
+            </p>
+            <div className="border-t border-border pt-4 font-mono text-xs text-muted">
+              ARE YOU READY TO SIGN?
+            </div>
+          </div>
+          <button className="btn-primary w-full py-4 text-sm font-display tracking-widest" onClick={() => setStep('goals')}>
+            SIGN THE CONTRACT
+          </button>
+        </div>
+      )}
+
+      {/* Step: Goals */}
+      {step === 'goals' && (
+        <div className="max-w-lg w-full space-y-6">
+          <div className="font-mono text-xs text-muted tracking-widest text-center mb-4">
+            STEP 1 OF 4 — DEFINE YOUR COMMITMENTS
+          </div>
+          <GoalConfigurator goals={goals} onChange={setGoals} />
+          <div className="flex gap-3">
+            <button className="btn-ghost flex-1" onClick={() => setStep('welcome')}>← BACK</button>
+            <button
+              className="btn-primary flex-1"
+              disabled={goals.length === 0}
+              onClick={() => setStep('target')}
+            >
+              NEXT →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step: Weekly Target */}
+      {step === 'target' && (
+        <div className="max-w-md w-full space-y-6">
+          <div className="font-mono text-xs text-muted tracking-widest text-center mb-4">
+            STEP 2 OF 4 — SET WEEKLY TARGET
+          </div>
+          <div className="card p-6 space-y-4">
+            <p className="font-mono text-xs text-muted">
+              How many days per week do you commit to logging?
+            </p>
+            <div className="flex items-center gap-4">
+              <input
+                type="range" min={1} max={7} value={weeklyTarget}
+                onChange={e => setWeeklyTarget(Number(e.target.value))}
+                className="flex-1 accent-accent"
+              />
+              <span className="font-display text-accent text-2xl font-bold w-8 text-center">
+                {weeklyTarget}
+              </span>
+            </div>
+            <p className="font-mono text-xs text-muted">
+              {weeklyTarget === 7 ? 'Every single day.' : `${weeklyTarget} day${weeklyTarget > 1 ? 's' : ''} per week.`}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button className="btn-ghost flex-1" onClick={() => setStep('goals')}>← BACK</button>
+            <button className="btn-primary flex-1" onClick={() => setStep('reviewDay')}>NEXT →</button>
+          </div>
+        </div>
+      )}
+
+      {/* Step: Review Day */}
+      {step === 'reviewDay' && (
+        <div className="max-w-md w-full space-y-6">
+          <div className="font-mono text-xs text-muted tracking-widest text-center mb-4">
+            STEP 3 OF 4 — WEEKLY REVIEW DAY
+          </div>
+          <div className="card p-6 space-y-4">
+            <p className="font-mono text-xs text-muted">
+              Which day of the week should trigger your weekly review?
+            </p>
+            <div className="grid grid-cols-7 gap-1">
+              {DAY_NAMES.map((name, i) => (
+                <button
+                  key={i}
+                  onClick={() => setReviewDay(i)}
+                  className={`py-2 text-xs font-mono border transition-all ${
+                    reviewDay === i
+                      ? 'border-accent text-accent bg-accent/10'
+                      : 'border-border text-muted hover:border-accent/50'
+                  }`}
+                >
+                  {name.slice(0, 3).toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <p className="font-mono text-xs text-muted">
+              Selected: <span className="text-accent">{DAY_NAMES[reviewDay]}</span>
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button className="btn-ghost flex-1" onClick={() => setStep('target')}>← BACK</button>
+            <button className="btn-primary flex-1" onClick={() => setStep('confirm')}>NEXT →</button>
+          </div>
+        </div>
+      )}
+
+      {/* Step: Confirm */}
+      {step === 'confirm' && (
+        <div className="max-w-md w-full space-y-6">
+          <div className="font-mono text-xs text-muted tracking-widest text-center mb-4">
+            STEP 4 OF 4 — REVIEW YOUR CONTRACT
+          </div>
+          <div className="card p-6 space-y-4">
+            <div className="space-y-2">
+              <div className="font-mono text-xs text-muted">COMMITMENTS</div>
+              {goals.map(g => (
+                <div key={g.id} className="flex items-center justify-between border-b border-border pb-2">
+                  <span className="font-mono text-sm text-text">{g.name}</span>
+                  <span className={`text-xs font-mono border px-2 py-0.5 priority-${g.priority}`}>
+                    {g.priority.toUpperCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="pt-2 space-y-1 font-mono text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted">WEEKLY TARGET</span>
+                <span className="text-accent">{weeklyTarget} DAYS</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">REVIEW DAY</span>
+                <span className="text-accent">{DAY_NAMES[reviewDay].toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">DURATION</span>
+                <span className="text-accent">1,127 DAYS</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button className="btn-ghost flex-1" onClick={() => setStep('reviewDay')}>← BACK</button>
+            <button
+              className="btn-primary flex-1 py-4 font-display tracking-widest"
+              disabled={signing}
+              onClick={handleSign}
+            >
+              {signing ? 'EXECUTING...' : 'EXECUTE CONTRACT'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
